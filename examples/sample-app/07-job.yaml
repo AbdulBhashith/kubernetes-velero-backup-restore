@@ -1,0 +1,28 @@
+# A Job (run-to-completion workload). Included so the backup set covers
+# batch/v1 objects. Completed Jobs are captured in a backup as well.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-marker
+  namespace: sample-app
+  labels:
+    app.kubernetes.io/part-of: velero-demo
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: init-marker
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: marker
+          image: busybox:1.36
+          command: ["/bin/sh", "-c", "echo 'sample job ran'; sleep 5"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi

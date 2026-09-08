@@ -1,0 +1,75 @@
+# StatefulSet with a headless Service and volumeClaimTemplates.
+# This is the key object for testing PERSISTENT VOLUME backup/restore:
+# each replica gets its own PVC (and dynamically-provisioned PV) that Velero
+# snapshots via CSI. The initContainer writes a marker file so you can verify
+# the data survived a restore.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  namespace: sample-app
+  labels:
+    app: db
+    app.kubernetes.io/part-of: velero-demo
+spec:
+  clusterIP: None # headless, required by StatefulSet
+  selector:
+    app: db
+  ports:
+    - port: 5432
+      name: pg
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db
+  namespace: sample-app
+  labels:
+    app: db
+    app.kubernetes.io/part-of: velero-demo
+spec:
+  serviceName: db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+        - name: store
+          image: busybox:1.36
+          # Write a timestamped marker once, then keep the container alive.
+          command:
+            - /bin/sh
+            - -c
+            - |
+              if [ ! -f /data/created-at.txt ]; then
+                date -u +"created %Y-%m-%dT%H:%M:%SZ" > /data/created-at.txt
+              fi
+              echo "marker: $(cat /data/created-at.txt)"
+              sleep 3600
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        # Use the cluster default StorageClass. On AKS this is a CSI-backed
+        # Azure Disk, which Velero can snapshot. If your default class name
+        # differs on the destination, remap it during restore.
+        resources:
+          requests:
+            storage: 1Gi

@@ -1,0 +1,66 @@
+# Deployment (stateless web tier) + its Service.
+# Mounts the ConfigMap and Secret so a restore proves those are recreated too.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: sample-app
+  labels:
+    app: web
+    app.kubernetes.io/part-of: velero-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      serviceAccountName: app-sa
+      containers:
+        - name: nginx
+          image: nginx:1.27
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html
+            - name: secret
+              mountPath: /etc/app-secret
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      volumes:
+        - name: html
+          configMap:
+            name: app-config
+            items:
+              - key: index.html
+                path: index.html
+        - name: secret
+          secret:
+            secretName: app-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: sample-app
+  labels:
+    app: web
+    app.kubernetes.io/part-of: velero-demo
+spec:
+  selector:
+    app: web
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP

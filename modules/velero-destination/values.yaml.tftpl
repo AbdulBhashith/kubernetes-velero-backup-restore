@@ -1,0 +1,92 @@
+# Helm values for Velero on the DESTINATION cluster.
+# Identical passwordless (Workload Identity) posture as the source, but the
+# backup storage location is marked read-only-friendly: the destination reads
+# backups written by the source. Velero still needs write access to create
+# restore metadata, so the same Blob Data Contributor role applies.
+
+image:
+  tag: "${velero_image_tag}"
+
+# See velero-source values for rationale: pin the CRD-job kubectl image to the
+# always-pullable upstream image and disable the CRD-upgrade hook job to avoid
+# the bitnami/kubectl ImagePullBackOff.
+kubectl:
+  image:
+    repository: registry.k8s.io/kubectl
+    tag: ${kubectl_image_tag}
+
+upgradeCRDs: false
+
+initContainers:
+  - name: velero-plugin-for-microsoft-azure
+    image: velero/velero-plugin-for-microsoft-azure:${plugin_azure_tag}
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+      - mountPath: /target
+        name: plugins
+%{ if !use_builtin_csi ~}
+  - name: velero-plugin-for-csi
+    image: velero/velero-plugin-for-csi:${plugin_csi_tag}
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+      - mountPath: /target
+        name: plugins
+%{ endif ~}
+
+podLabels:
+  azure.workload.identity/use: "true"
+
+serviceAccount:
+  server:
+    create: true
+    name: velero
+    annotations:
+      azure.workload.identity/client-id: "${workload_identity_client_id}"
+    labels:
+      azure.workload.identity/use: "true"
+
+credentials:
+  useSecret: false
+
+configuration:
+  features: "${ enable_csi_snapshots && use_builtin_csi ? "EnableCSI" : "" }"
+
+  backupStorageLocation:
+    - name: default
+      provider: azure
+      bucket: "${blob_container_name}"
+      default: true
+      # accessMode ReadWrite is required for restores (Velero writes restore
+      # objects and may sync backups). Set to ReadOnly if this cluster should
+      # never create new backups.
+      accessMode: ReadWrite
+      config:
+        resourceGroup: "${resource_group_name}"
+        storageAccount: "${storage_account_name}"
+        subscriptionId: "${subscription_id}"
+        useAAD: "true"
+      prefix: "${backup_prefix}"
+
+  volumeSnapshotLocation:
+    - name: default
+      provider: azure
+      config:
+        resourceGroup: "${resource_group_name}"
+        subscriptionId: "${subscription_id}"
+
+deployNodeAgent: ${enable_node_agent}
+snapshotsEnabled: ${enable_csi_snapshots}
+
+%{ if enable_csi_snapshots ~}
+# VolumeSnapshotClass required for CSI snapshot restore on Azure Disk (see
+# velero-source for rationale). Created via the Helm release's extraObjects.
+extraObjects:
+  - apiVersion: snapshot.storage.k8s.io/v1
+    kind: VolumeSnapshotClass
+    metadata:
+      name: velero-azure-disk
+      labels:
+        velero.io/csi-volumesnapshot-class: "true"
+    driver: ${csi_driver}
+    deletionPolicy: Retain
+%{ endif ~}

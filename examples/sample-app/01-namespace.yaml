@@ -1,0 +1,8 @@
+# Namespace that contains the whole sample application.
+# Backing up / restoring this single namespace exercises every object type below.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sample-app
+  labels:
+    app.kubernetes.io/part-of: velero-demo

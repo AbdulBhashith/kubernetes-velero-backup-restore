@@ -1,0 +1,31 @@
+# VolumeSnapshotClass for the Azure Disk CSI driver, labeled so Velero uses it
+# for CSI snapshots.
+#
+# WHY THIS IS NEEDED:
+#   Velero's CSI snapshotting requires a VolumeSnapshotClass that (a) matches
+#   the PVC's CSI driver (disk.csi.azure.com) and (b) carries the label
+#   velero.io/csi-volumesnapshot-class: "true". AKS does not create this by
+#   default, so PVC backups fail with:
+#     "failed to get VolumeSnapshotClass for provisioner disk.csi.azure.com,
+#      ensure that the desired VolumeSnapshot class has the
+#      velero.io/csi-volumesnapshot-class label"
+#
+# APPLY THIS ON BOTH CLUSTERS (source needs it to snapshot; destination needs
+# it to restore):
+#   kubectl --context aks-source      apply -f examples/volumesnapshotclass-azure-disk.yaml
+#   kubectl --context aks-destination apply -f examples/volumesnapshotclass-azure-disk.yaml
+#
+# Terraform can also create this automatically on both clusters - it is wired
+# into the Velero Helm release via extraObjects (see modules/velero-*). This
+# standalone file is for quick manual application / reference.
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: velero-azure-disk
+  labels:
+    velero.io/csi-volumesnapshot-class: "true"
+driver: disk.csi.azure.com
+# Retain keeps the underlying Azure snapshot if the VolumeSnapshot object is
+# deleted; Velero manages lifecycle via backup TTL. Use "Delete" if you prefer
+# the snapshot to be removed with the VolumeSnapshot object.
+deletionPolicy: Retain

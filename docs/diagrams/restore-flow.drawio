@@ -1,0 +1,44 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="restoreflow" name="Restore Flow">
+    <mxGraphModel dx="1000" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="520" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="a" value="Destination sees backup&#10;velero backup get" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#f9a825;" vertex="1" parent="1">
+          <mxGeometry x="40" y="200" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="b" value="velero restore create&#10;--from-backup &lt;name&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#f9a825;" vertex="1" parent="1">
+          <mxGeometry x="250" y="200" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c" value="Download backup&#10;from Blob" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;" vertex="1" parent="1">
+          <mxGeometry x="460" y="200" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="d" value="namespace&#10;mapping?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#f9a825;" vertex="1" parent="1">
+          <mxGeometry x="660" y="185" width="130" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="e" value="Recreate into&#10;mapped namespaces" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;" vertex="1" parent="1">
+          <mxGeometry x="840" y="120" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="f" value="Recreate into&#10;original namespaces" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;" vertex="1" parent="1">
+          <mxGeometry x="840" y="290" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="g" value="restore_pvs?&#10;restore PVs from snapshots" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;" vertex="1" parent="1">
+          <mxGeometry x="840" y="400" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="h" value="Workloads running&#10;on destination" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#2e7d32;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="460" y="400" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ab" style="endArrow=block;html=1;" edge="1" parent="1" source="a" target="b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="bc" style="endArrow=block;html=1;" edge="1" parent="1" source="b" target="c"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="cd" style="endArrow=block;html=1;" edge="1" parent="1" source="c" target="d"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="de" value="yes" style="endArrow=block;html=1;" edge="1" parent="1" source="d" target="e"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="df" value="no" style="endArrow=block;html=1;" edge="1" parent="1" source="d" target="f"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="eg" style="endArrow=block;html=1;" edge="1" parent="1" source="e" target="g"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="fg" style="endArrow=block;html=1;" edge="1" parent="1" source="f" target="g"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="gh" style="endArrow=block;html=1;" edge="1" parent="1" source="g" target="h"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

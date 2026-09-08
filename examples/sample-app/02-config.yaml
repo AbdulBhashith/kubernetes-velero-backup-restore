@@ -1,0 +1,36 @@
+# Config objects: ConfigMap, Secret, ServiceAccount.
+# These are namespaced resources captured by a namespace backup.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: sample-app
+  labels:
+    app.kubernetes.io/part-of: velero-demo
+data:
+  greeting: "hello from velero demo"
+  index.html: |
+    <html>
+      <body><h1>Velero demo app</h1><p>Restored successfully if you can read this.</p></body>
+    </html>
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secret
+  namespace: sample-app
+  labels:
+    app.kubernetes.io/part-of: velero-demo
+type: Opaque
+stringData:
+  # Demo value only — not a real credential.
+  api-token: "demo-not-a-real-secret"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app-sa
+  namespace: sample-app
+  labels:
+    app.kubernetes.io/part-of: velero-demo

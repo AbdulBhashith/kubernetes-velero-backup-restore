@@ -1,0 +1,40 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="backupflow" name="Backup Flow">
+    <mxGraphModel dx="1000" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="a" value="Schedule fires&#10;(or manual&#10;velero backup create)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="180" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="b" value="Velero collects&#10;K8s resources" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;" vertex="1" parent="1">
+          <mxGeometry x="240" y="180" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c" value="snapshot_volumes&#10;&amp; CSI enabled?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#f9a825;" vertex="1" parent="1">
+          <mxGeometry x="440" y="165" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="d" value="CSI VolumeSnapshots&#10;of PVs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;" vertex="1" parent="1">
+          <mxGeometry x="650" y="90" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e" value="Skip volume data&#10;(or Kopia if node-agent)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffebee;strokeColor=#c62828;" vertex="1" parent="1">
+          <mxGeometry x="650" y="290" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="f" value="Upload manifests&#10;+ metadata + snapshots" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;" vertex="1" parent="1">
+          <mxGeometry x="870" y="180" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="g" value="Blob container&#10;prefix: source/backups/&lt;name&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#2e7d32;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="870" y="300" width="170" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ab" style="endArrow=block;html=1;" edge="1" parent="1" source="a" target="b"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="bc" style="endArrow=block;html=1;" edge="1" parent="1" source="b" target="c"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="cd" value="yes" style="endArrow=block;html=1;" edge="1" parent="1" source="c" target="d"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ce" value="no" style="endArrow=block;html=1;" edge="1" parent="1" source="c" target="e"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="df" style="endArrow=block;html=1;" edge="1" parent="1" source="d" target="f"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="ef" style="endArrow=block;html=1;" edge="1" parent="1" source="e" target="f"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="fg" style="endArrow=block;html=1;" edge="1" parent="1" source="f" target="g"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

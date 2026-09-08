@@ -1,0 +1,104 @@
+# terraform.tfvars.example
+# Copy to terraform.tfvars and adjust for your environment.
+#   cp terraform.tfvars.example terraform.tfvars
+# Do NOT commit terraform.tfvars if it contains environment-specific IDs.
+
+# ---- Azure identity ---------------------------------------------------------
+subscription_id = "00000000-0000-0000-0000-000000000000"
+tenant_id       = "11111111-1111-1111-1111-111111111111"
+location        = "eastus"
+
+# ---- Naming -----------------------------------------------------------------
+name_prefix           = "velero"
+resource_group_name   = "rg-velero-backup"
+create_resource_group = true
+
+# ---- Cluster lifecycle ------------------------------------------------------
+# true  = Terraform creates both AKS clusters (cost-optimized).
+# false = both clusters already exist and are looked up.
+create_clusters = true
+
+# ---- Source cluster (backed up) --------------------------------------------
+source_cluster = {
+  name                = "aks-source"
+  resource_group_name = "rg-aks-source"
+  location            = "eastus"
+  backup_prefix       = "source"
+}
+
+# ---- Destination cluster (restore target) ----------------------------------
+destination_cluster = {
+  name                = "aks-destination"
+  resource_group_name = "rg-aks-destination"
+  location            = "eastus"
+}
+
+# ---- Cost-optimized cluster sizing (only used when create_clusters = true) --
+cluster_config = {
+  kubernetes_version    = null          # null = AKS region default
+  sku_tier              = "Free"         # no uptime-SLA charge
+  node_vm_size          = "Standard_D2als_v7" # low-cost 2 vCPU node (change if your subscription restricts sizes)
+  enable_auto_scaling   = true
+  min_node_count        = 1
+  max_node_count        = 2
+  node_count            = 1
+  os_disk_size_gb       = 32
+  use_ephemeral_os_disk = false # set true only with a VM size that has a large cache
+
+  # Azure CNI Overlay networking (kubenet is deprecated after 2028-03-31).
+  # Defaults are fine unless they collide with your VNet address space.
+  pod_cidr       = "10.244.0.0/16" # overlay pod IPs (not routable, no subnet consumption)
+  service_cidr   = "10.0.0.0/16"   # Kubernetes Service ClusterIPs
+  dns_service_ip = "10.0.0.10"     # must be inside service_cidr
+}
+
+# ---- Storage account --------------------------------------------------------
+storage_account_tier               = "Standard"
+storage_account_replication_type   = "ZRS"
+blob_container_name                = "velero"
+storage_soft_delete_retention_days = 30
+storage_network_default_action     = "Allow"
+allowed_ip_ranges                  = []
+
+# ---- Velero / Helm ----------------------------------------------------------
+velero_namespace          = "velero"
+velero_helm_chart_version = "12.1.0"  # chart 12.x installs Velero v1.16 (ignored when use_local_chart = true)
+
+# Local-chart fallback: set true after running the helm pull in chart/README.md.
+use_local_chart  = false
+# local_chart_path = "" # defaults to ./chart/velero
+velero_image_tag          = "v1.16.0"
+velero_plugin_azure_tag   = "v1.12.0" # must be a PUBLISHED tag; pairs with Velero v1.16
+kubectl_image_tag         = "v1.31.0" # registry.k8s.io/kubectl tag for CRD jobs (avoids bitnami/kubectl)
+use_builtin_csi           = true
+enable_csi_snapshots      = true
+enable_node_agent         = false
+
+# ---- Backup schedules -------------------------------------------------------
+backup_schedules = {
+  daily = {
+    cron                = "0 2 * * *"
+    included_namespaces = ["*"]
+    excluded_namespaces = ["kube-system", "velero"]
+    ttl                 = "720h0m0s" # 30 days
+    snapshot_volumes    = true
+  }
+  hourly-app = {
+    cron                = "0 * * * *"
+    included_namespaces = ["production"]
+    ttl                 = "168h0m0s" # 7 days
+    snapshot_volumes    = true
+  }
+}
+
+# ---- Restore (on-demand; usually driven via scripts) -----------------------
+enable_restore = false
+restore_config = {
+  backup_name         = ""
+  restore_name        = "restore-from-source"
+  included_namespaces = ["*"]
+  excluded_namespaces = []
+  namespace_mappings  = {} # e.g. { "production" = "production-dr" }
+  restore_pvs         = true
+  existing_resource_policy = "none"
+}

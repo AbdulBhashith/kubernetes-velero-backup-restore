@@ -1,0 +1,25 @@
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfplan
+tfplan
+
+# Secrets / environment-specific inputs (keep terraform.tfvars.example)
+terraform.tfvars
+*.auto.tfvars
+*.tfvars.json
+
+# Generated Velero restore manifests
+generated/
+
+# Vendored Velero chart (run helm pull to populate; see chart/README.md).
+# Remove this line if your team prefers to commit the chart for reproducibility.
+chart/velero/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db

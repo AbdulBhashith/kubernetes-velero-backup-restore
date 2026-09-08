@@ -1,0 +1,74 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="architecture" name="Architecture">
+    <mxGraphModel dx="1100" dy="760" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="720" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Azure boundary -->
+        <mxCell id="az" value="Azure Subscription" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#f5f9ff;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="1020" height="620" as="geometry" />
+        </mxCell>
+
+        <!-- Backup resource group -->
+        <mxCell id="rg" value="Resource Group: backup" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#e3f2fd;strokeColor=#1565c0;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="90" width="300" height="360" as="geometry" />
+        </mxCell>
+        <mxCell id="sa" value="Storage Account&#10;(TLS1.2, infra encryption,&#10;soft-delete, versioning)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#1565c0;" vertex="1" parent="1">
+          <mxGeometry x="430" y="130" width="240" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ct" value="Blob Container: velero&#10;(prefix: source/)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#bbdefb;strokeColor=#1565c0;" vertex="1" parent="1">
+          <mxGeometry x="430" y="220" width="240" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="mi" value="User-Assigned&#10;Managed Identity" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#e65100;" vertex="1" parent="1">
+          <mxGeometry x="430" y="300" width="240" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="ra" value="Role Assignment&#10;Storage Blob Data Contributor&#10;(scoped to storage account)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0b2;strokeColor=#e65100;" vertex="1" parent="1">
+          <mxGeometry x="430" y="370" width="240" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Source cluster -->
+        <mxCell id="src" value="Source AKS Cluster" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#e8f5e9;strokeColor=#2e7d32;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="120" width="260" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="vs" value="Velero + Azure plugin&#10;(CSI snapshots)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#2e7d32;" vertex="1" parent="1">
+          <mxGeometry x="110" y="160" width="200" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="ssa" value="ServiceAccount: velero&#10;(Workload Identity)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#2e7d32;" vertex="1" parent="1">
+          <mxGeometry x="110" y="230" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sch" value="Backup Schedules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#2e7d32;" vertex="1" parent="1">
+          <mxGeometry x="110" y="295" width="200" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Destination cluster -->
+        <mxCell id="dst" value="Destination AKS Cluster" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#fff8e1;strokeColor=#f9a825;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="760" y="120" width="260" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="vd" value="Velero + Azure plugin&#10;(CSI restore)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffecb3;strokeColor=#f9a825;" vertex="1" parent="1">
+          <mxGeometry x="790" y="160" width="200" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="dsa" value="ServiceAccount: velero&#10;(Workload Identity)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffecb3;strokeColor=#f9a825;" vertex="1" parent="1">
+          <mxGeometry x="790" y="230" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Edges -->
+        <mxCell id="e1" value="writes backups" style="endArrow=block;html=1;strokeColor=#2e7d32;fontSize=11;" edge="1" parent="1" source="sch" target="ct">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="reads / restores" style="endArrow=block;html=1;strokeColor=#f9a825;fontSize=11;" edge="1" parent="1" source="vd" target="ct">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="federated" style="endArrow=open;dashed=1;html=1;strokeColor=#e65100;fontSize=11;" edge="1" parent="1" source="ssa" target="mi">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="federated" style="endArrow=open;dashed=1;html=1;strokeColor=#e65100;fontSize=11;" edge="1" parent="1" source="dsa" target="mi">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="grants access to" style="endArrow=open;dashed=1;html=1;strokeColor=#e65100;fontSize=11;" edge="1" parent="1" source="ra" target="sa">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

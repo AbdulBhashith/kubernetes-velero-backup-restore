@@ -1,0 +1,110 @@
+# Helm values for the vmware-tanzu/velero chart (rendered by Terraform).
+# Authentication is passwordless via Azure Workload Identity: the Velero
+# service account is annotated with the managed identity client ID and labeled
+# for the workload-identity webhook, so no storage key/secret is stored.
+
+image:
+  tag: "${velero_image_tag}"
+
+# CRD-management job image. Older chart versions defaulted this to
+# docker.io/bitnami/kubectl, whose tags became unreliable after Bitnami's 2025
+# Docker Hub repo migration (causing ImagePullBackOff on the
+# velero-upgrade-crds / cleanup jobs). Pin to the official upstream kubectl
+# image on registry.k8s.io, which is always pullable.
+kubectl:
+  image:
+    repository: registry.k8s.io/kubectl
+    tag: ${kubectl_image_tag}
+
+# Disable the CRD-upgrade hook job. On a fresh install Velero applies its own
+# CRDs, so this job is unnecessary and only adds an extra image-pull dependency.
+# Re-enable if you specifically need in-place CRD upgrades across chart bumps.
+upgradeCRDs: false
+
+# Initialize plugins. The Azure plugin is always required. The standalone CSI
+# plugin is only added when not relying on Velero's built-in CSI support.
+initContainers:
+  - name: velero-plugin-for-microsoft-azure
+    image: velero/velero-plugin-for-microsoft-azure:${plugin_azure_tag}
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+      - mountPath: /target
+        name: plugins
+%{ if !use_builtin_csi ~}
+  - name: velero-plugin-for-csi
+    image: velero/velero-plugin-for-csi:${plugin_csi_tag}
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+      - mountPath: /target
+        name: plugins
+%{ endif ~}
+
+# Workload Identity wiring on the Velero pods/service account.
+podLabels:
+  azure.workload.identity/use: "true"
+
+serviceAccount:
+  server:
+    create: true
+    name: velero
+    annotations:
+      azure.workload.identity/client-id: "${workload_identity_client_id}"
+    labels:
+      azure.workload.identity/use: "true"
+
+# No cloud credentials secret is used (passwordless). useSecret=false tells the
+# chart not to mount a credentials file.
+credentials:
+  useSecret: false
+
+configuration:
+  # Feature gate required for built-in CSI snapshot support on Velero >= 1.14.
+  features: "${ enable_csi_snapshots && use_builtin_csi ? "EnableCSI" : "" }"
+
+  backupStorageLocation:
+    - name: default
+      provider: azure
+      bucket: "${blob_container_name}"
+      default: true
+      config:
+        resourceGroup: "${resource_group_name}"
+        storageAccount: "${storage_account_name}"
+        subscriptionId: "${subscription_id}"
+        useAAD: "true"
+      prefix: "${backup_prefix}"
+
+  volumeSnapshotLocation:
+    - name: default
+      provider: azure
+      config:
+        resourceGroup: "${resource_group_name}"
+        subscriptionId: "${subscription_id}"
+
+# Node-agent (Kopia) for filesystem-level backups of volumes without CSI support.
+deployNodeAgent: ${enable_node_agent}
+
+# Global snapshot toggle; per-schedule overrides live in the schedules block.
+snapshotsEnabled: ${enable_csi_snapshots}
+
+%{ if enable_csi_snapshots ~}
+# VolumeSnapshotClass required for CSI snapshots on Azure Disk. Rendered as part
+# of the Helm release (extraObjects) so it is created without a plan-time
+# cluster API call. Labeled so Velero selects it automatically.
+extraObjects:
+  - apiVersion: snapshot.storage.k8s.io/v1
+    kind: VolumeSnapshotClass
+    metadata:
+      name: velero-azure-disk
+      labels:
+        velero.io/csi-volumesnapshot-class: "true"
+    driver: ${csi_driver}
+    deletionPolicy: Retain
+%{ endif ~}
+
+# Scheduled backups are defined natively by the Helm chart (rendered as Velero
+# Schedule CRs by the release). Defining them here - instead of via the
+# kubernetes_manifest resource - avoids the plan-time cluster API dependency,
+# so a single `terraform apply` works even when the cluster is created in the
+# same run. The whole `schedules:` key is emitted by yamlencode for valid,
+# uniform indentation.
+${schedules_block}
