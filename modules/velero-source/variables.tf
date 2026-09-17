@@ -63,9 +63,9 @@ variable "csi_driver" {
 }
 
 variable "enable_node_agent" {
-  description = "Deploy the Velero node-agent (Kopia) for filesystem-level backups."
+  description = "Deploy the Velero node-agent (Kopia) for filesystem-level backups. Required for portable cross-cluster/cross-region volume restores."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "workload_identity_client_id" {
@@ -106,14 +106,15 @@ variable "subscription_id" {
 variable "backup_schedules" {
   description = "Map of Velero backup schedules to create."
   type = map(object({
-    cron                      = string
-    included_namespaces       = optional(list(string), ["*"])
-    excluded_namespaces       = optional(list(string), [])
-    included_resources        = optional(list(string), [])
-    excluded_resources        = optional(list(string), [])
-    ttl                       = optional(string, "720h0m0s")
-    snapshot_volumes          = optional(bool, true)
-    include_cluster_resources = optional(bool, true)
+    cron                         = string
+    included_namespaces          = optional(list(string), ["*"])
+    excluded_namespaces          = optional(list(string), [])
+    included_resources           = optional(list(string), [])
+    excluded_resources           = optional(list(string), [])
+    ttl                          = optional(string, "720h0m0s")
+    snapshot_volumes             = optional(bool, true)
+    default_volumes_to_fs_backup = optional(bool, false)
+    include_cluster_resources    = optional(bool, true)
   }))
   default = {}
 }

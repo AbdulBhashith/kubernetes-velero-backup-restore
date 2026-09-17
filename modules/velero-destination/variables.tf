@@ -63,9 +63,9 @@ variable "csi_driver" {
 }
 
 variable "enable_node_agent" {
-  description = "Deploy the Velero node-agent (Kopia) for filesystem-level restore."
+  description = "Deploy the Velero node-agent (Kopia) for filesystem-level restore. Must be enabled on the destination so PodVolumeRestores can repopulate volumes from Kopia backups."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "workload_identity_client_id" {

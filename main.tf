@@ -166,29 +166,29 @@ module "velero_source" {
     kubernetes = kubernetes.source
   }
 
-  velero_namespace    = var.velero_namespace
-  helm_chart_version  = var.velero_helm_chart_version
-  use_local_chart     = var.use_local_chart
-  local_chart_path    = local.resolved_local_chart_path
-  velero_image_tag    = var.velero_image_tag
-  plugin_azure_tag    = var.velero_plugin_azure_tag
-  plugin_csi_tag      = var.velero_plugin_csi_tag
-  kubectl_image_tag   = var.kubectl_image_tag
-  use_builtin_csi     = var.use_builtin_csi
+  velero_namespace     = var.velero_namespace
+  helm_chart_version   = var.velero_helm_chart_version
+  use_local_chart      = var.use_local_chart
+  local_chart_path     = local.resolved_local_chart_path
+  velero_image_tag     = var.velero_image_tag
+  plugin_azure_tag     = var.velero_plugin_azure_tag
+  plugin_csi_tag       = var.velero_plugin_csi_tag
+  kubectl_image_tag    = var.kubectl_image_tag
+  use_builtin_csi      = var.use_builtin_csi
   enable_csi_snapshots = var.enable_csi_snapshots
-  csi_driver          = var.csi_driver
-  enable_node_agent   = var.enable_node_agent
+  csi_driver           = var.csi_driver
+  enable_node_agent    = var.enable_node_agent
 
   # Passwordless auth via Workload Identity.
   workload_identity_client_id = module.azure_storage.managed_identity_client_id
   tenant_id                   = var.tenant_id
 
   # Storage backend.
-  storage_account_name  = module.azure_storage.storage_account_name
-  blob_container_name   = module.azure_storage.blob_container_name
-  backup_prefix         = var.source_cluster.backup_prefix
-  resource_group_name   = module.azure_storage.resource_group_name
-  subscription_id       = var.subscription_id
+  storage_account_name = module.azure_storage.storage_account_name
+  blob_container_name  = module.azure_storage.blob_container_name
+  backup_prefix        = var.source_cluster.backup_prefix
+  resource_group_name  = module.azure_storage.resource_group_name
+  subscription_id      = var.subscription_id
 
   backup_schedules = var.backup_schedules
 

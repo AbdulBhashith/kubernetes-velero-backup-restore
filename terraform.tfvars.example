@@ -72,22 +72,32 @@ velero_plugin_azure_tag   = "v1.12.0" # must be a PUBLISHED tag; pairs with Vele
 kubectl_image_tag         = "v1.31.0" # registry.k8s.io/kubectl tag for CRD jobs (avoids bitnami/kubectl)
 use_builtin_csi           = true
 enable_csi_snapshots      = true
-enable_node_agent         = false
+# Node-agent (Kopia) enables PORTABLE filesystem volume backups. Keep this true
+# for cross-cluster / cross-region restores: Azure Disk CSI snapshots are bound
+# to the source cluster's region and node resource group and cannot be
+# provisioned on the destination cluster (the disk CSI provisioner returns a
+# 403/NotFound reading the source snapshot).
+enable_node_agent         = true
 
 # ---- Backup schedules -------------------------------------------------------
+# For cross-cluster restores use default_volumes_to_fs_backup = true (Kopia)
+# and snapshot_volumes = false. CSI snapshots are only suitable for same-cluster
+# restores.
 backup_schedules = {
   daily = {
-    cron                = "0 2 * * *"
-    included_namespaces = ["*"]
-    excluded_namespaces = ["kube-system", "velero"]
-    ttl                 = "720h0m0s" # 30 days
-    snapshot_volumes    = true
+    cron                         = "0 2 * * *"
+    included_namespaces          = ["*"]
+    excluded_namespaces          = ["kube-system", "velero"]
+    ttl                          = "720h0m0s" # 30 days
+    snapshot_volumes             = false
+    default_volumes_to_fs_backup = true
   }
   hourly-app = {
-    cron                = "0 * * * *"
-    included_namespaces = ["production"]
-    ttl                 = "168h0m0s" # 7 days
-    snapshot_volumes    = true
+    cron                         = "0 * * * *"
+    included_namespaces          = ["production"]
+    ttl                          = "168h0m0s" # 7 days
+    snapshot_volumes             = false
+    default_volumes_to_fs_backup = true
   }
 }
 

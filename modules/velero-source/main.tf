@@ -20,15 +20,16 @@ locals {
       disabled = false
       schedule = s.cron
       template = {
-        ttl                     = s.ttl
-        snapshotVolumes         = s.snapshot_volumes
-        includeClusterResources = s.include_cluster_resources
-        storageLocation         = "default"
-        volumeSnapshotLocations = ["default"]
-        includedNamespaces      = s.included_namespaces
-        excludedNamespaces      = s.excluded_namespaces
-        includedResources       = s.included_resources
-        excludedResources       = s.excluded_resources
+        ttl                      = s.ttl
+        snapshotVolumes          = s.snapshot_volumes
+        defaultVolumesToFsBackup = s.default_volumes_to_fs_backup
+        includeClusterResources  = s.include_cluster_resources
+        storageLocation          = "default"
+        volumeSnapshotLocations  = ["default"]
+        includedNamespaces       = s.included_namespaces
+        excludedNamespaces       = s.excluded_namespaces
+        includedResources        = s.included_resources
+        excludedResources        = s.excluded_resources
       }
     }
   }

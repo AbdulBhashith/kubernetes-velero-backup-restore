@@ -45,10 +45,10 @@ resource "azurerm_storage_account" "this" {
   account_replication_type = var.account_replication_type
   account_kind             = "StorageV2"
 
-  https_traffic_only_enabled      = true
-  min_tls_version                 = "TLS1_2"
-  allow_nested_items_to_be_public = false
-  public_network_access_enabled   = true
+  https_traffic_only_enabled        = true
+  min_tls_version                   = "TLS1_2"
+  allow_nested_items_to_be_public   = false
+  public_network_access_enabled     = true
   infrastructure_encryption_enabled = true
 
   # Prefer Entra ID (AAD) auth for portal/data-plane operations.

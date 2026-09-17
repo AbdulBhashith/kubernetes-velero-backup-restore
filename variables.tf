@@ -65,8 +65,8 @@ variable "create_clusters" {
     If true, Terraform CREATES the source and destination AKS clusters (cost-optimized).
     If false, both clusters must already exist and are looked up by name/resource group.
   EOT
-  type    = bool
-  default = true
+  type        = bool
+  default     = true
 }
 
 # ---------------------------------------------------------------------------
@@ -275,9 +275,9 @@ variable "csi_driver" {
 }
 
 variable "enable_node_agent" {
-  description = "Enable the Velero node-agent (Kopia) for filesystem-level backups of volumes that do not support CSI snapshots."
+  description = "Enable the Velero node-agent (Kopia) for filesystem-level backups. Required for portable cross-cluster/cross-region volume restores, since CSI (Azure Disk) snapshots are region- and resource-group-bound and cannot be provisioned on a different cluster."
   type        = bool
-  default     = false
+  default     = true
 }
 
 # ---------------------------------------------------------------------------
@@ -292,25 +292,31 @@ variable "backup_schedules" {
       included_resources  : Resource types to include ([] means all).
       excluded_resources  : Resource types to exclude.
       ttl                 : Retention duration (e.g. "720h0m0s" = 30 days).
-      snapshot_volumes    : Whether to snapshot persistent volumes.
+      snapshot_volumes    : Whether to snapshot persistent volumes via CSI (region/RG-bound; not portable across clusters).
+      default_volumes_to_fs_backup : Back up all pod volumes with the node-agent (Kopia) filesystem copy. This is the portable, cross-cluster/cross-region path and requires enable_node_agent = true.
       include_cluster_resources : Include cluster-scoped resources.
   EOT
   type = map(object({
-    cron                      = string
-    included_namespaces       = optional(list(string), ["*"])
-    excluded_namespaces       = optional(list(string), [])
-    included_resources        = optional(list(string), [])
-    excluded_resources        = optional(list(string), [])
-    ttl                       = optional(string, "720h0m0s")
-    snapshot_volumes          = optional(bool, true)
-    include_cluster_resources = optional(bool, true)
+    cron                         = string
+    included_namespaces          = optional(list(string), ["*"])
+    excluded_namespaces          = optional(list(string), [])
+    included_resources           = optional(list(string), [])
+    excluded_resources           = optional(list(string), [])
+    ttl                          = optional(string, "720h0m0s")
+    snapshot_volumes             = optional(bool, true)
+    default_volumes_to_fs_backup = optional(bool, false)
+    include_cluster_resources    = optional(bool, true)
   }))
   default = {
     daily = {
       cron                = "0 2 * * *"
       included_namespaces = ["*"]
       ttl                 = "720h0m0s" # 30 days
-      snapshot_volumes    = true
+      # Use portable filesystem (Kopia) volume backups by default so restores
+      # work on a different cluster/region. CSI snapshots are disabled here
+      # because Azure Disk snapshots cannot be provisioned cross-cluster.
+      snapshot_volumes             = false
+      default_volumes_to_fs_backup = true
     }
   }
 }
