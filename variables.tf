@@ -263,9 +263,22 @@ variable "use_builtin_csi" {
 }
 
 variable "enable_csi_snapshots" {
-  description = "Enable CSI volume snapshots for persistent volume backup (recommended on AKS with Azure Disk CSI)."
+  description = <<-EOT
+    Enable CSI volume snapshots for persistent volume backup. Default is false.
+
+    CSI (Azure Disk) snapshots are fast/block-level but are bound to the source
+    cluster's REGION and node resource group (MC_*). They cannot be provisioned
+    on a different cluster: the destination Azure Disk CSI driver returns a 403
+    reading Microsoft.Compute/snapshots in the source RG, so restored PVCs hang
+    in Pending. Only enable this for SAME-cluster / same-region restores.
+
+    For portable cross-cluster/cross-region restores keep this false and use the
+    node-agent filesystem (Kopia) path (enable_node_agent = true +
+    default_volumes_to_fs_backup = true on schedules), which recreates PVCs from
+    a normal StorageClass and copies data back with no snapshot dependency.
+  EOT
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "csi_driver" {

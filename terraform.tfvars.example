@@ -71,7 +71,10 @@ velero_image_tag          = "v1.16.0"
 velero_plugin_azure_tag   = "v1.12.0" # must be a PUBLISHED tag; pairs with Velero v1.16
 kubectl_image_tag         = "v1.31.0" # registry.k8s.io/kubectl tag for CRD jobs (avoids bitnami/kubectl)
 use_builtin_csi           = true
-enable_csi_snapshots      = true
+# CSI (Azure Disk) snapshots are NOT portable across clusters/regions (the
+# destination CSI driver gets a 403 reading the source cluster's snapshots), so
+# they are disabled here. Set true only for same-cluster/same-region restores.
+enable_csi_snapshots      = false
 # Node-agent (Kopia) enables PORTABLE filesystem volume backups. Keep this true
 # for cross-cluster / cross-region restores: Azure Disk CSI snapshots are bound
 # to the source cluster's region and node resource group and cannot be
